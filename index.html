@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>สลิปค่าแรง OT รายปี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Noto+Serif+Thai:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* base HUD theme */
+    --ink:#040810; --panel:#0a1424cc; --panel-2:#0e1c30;
+    --paper:#eaf4ff; --paper-dim:#7189a8; --paper-dimmer:#4c6180;
+    --gold:#2be3ff;        /* was gold -> now electric cyan */
+    --teal:#2dffc4;        /* teal / green ring */
+    --coral:#c39bff;       /* was coral -> now purple */
+    --rule:rgba(43,227,255,0.18);
+    --work-red:#ff6b8b; --off-blue:#5b9bf7; --vac-green:#4ade80;
+    --cyan:#2be3ff; --purple:#c39bff; --green:#4ade80; --red:#ff5470;
+    --border-soft:rgba(255,255,255,0.08);
+    --glow-cyan:0 0 24px -2px rgba(43,227,255,.55);
+    --glow-purple:0 0 24px -2px rgba(195,155,255,.5);
+    --glow-teal:0 0 24px -2px rgba(45,255,196,.5);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--ink);color:var(--paper);font-family:'IBM Plex Sans Thai',sans-serif;
+    position:relative;overflow-x:hidden;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 4% -6%, rgba(43,227,255,0.16), transparent 55%),
+      radial-gradient(ellipse 900px 500px at 102% 0%, rgba(195,155,255,0.14), transparent 55%),
+      radial-gradient(ellipse 700px 500px at 90% 90%, rgba(45,255,196,0.07), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(43,227,255,0.05) 0px, rgba(43,227,255,0.05) 1px, transparent 1px, transparent 42px),
+      repeating-linear-gradient(90deg, rgba(43,227,255,0.05) 0px, rgba(43,227,255,0.05) 1px, transparent 1px, transparent 42px);
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(180deg, rgba(43,227,255,0.05) 0px, rgba(43,227,255,0.05) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:overlay;opacity:.35;
+  }
+  body::after{
+    content:'';position:fixed;left:0;right:0;height:140px;pointer-events:none;z-index:0;
+    background:linear-gradient(180deg, transparent 0%, rgba(43,227,255,0.05) 50%, transparent 100%);
+    animation:scanmove 7s linear infinite;
+  }
+  @keyframes scanmove{0%{top:-140px;}100%{top:100vh;}}
+  @keyframes pulseDot{0%,100%{box-shadow:0 0 6px currentColor;}50%{box-shadow:0 0 16px currentColor;}}
+  @keyframes spinCW{to{transform:rotate(360deg);}}
+  @keyframes spinCCW{to{transform:rotate(-360deg);}}
+  @keyframes flicker{0%,100%{opacity:1;}92%{opacity:1;}93%{opacity:.7;}94%{opacity:1;}}
+  .app{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+  /* corner-bracket HUD framing, applied to rectangular panels */
+  .hud-corners{position:relative;}
+  .hud-corners::before,.hud-corners::after{
+    content:'';position:absolute;width:16px;height:16px;border:2px solid var(--cyan);opacity:.55;pointer-events:none;
+  }
+  .hud-corners::before{top:-1px;left:-1px;border-right:none;border-bottom:none;border-radius:4px 0 0 0;}
+  .hud-corners::after{bottom:-1px;right:-1px;border-left:none;border-top:none;border-radius:0 0 4px 0;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:216px;flex:0 0 216px;background:linear-gradient(180deg,#081426ee,#040810f2 70%);
+    backdrop-filter:blur(6px);
+    border-right:1px solid var(--rule);padding:26px 14px 18px;display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;overflow-y:auto;box-shadow:8px 0 40px -20px rgba(43,227,255,.35);
+  }
+  .brand{display:flex;justify-content:center;margin-bottom:30px;position:relative;}
+  .brand-badge{
+    width:64px;height:64px;border-radius:50%;border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;
+    font-family:'Orbitron',monospace;font-weight:800;color:var(--cyan);letter-spacing:.05em;font-size:18px;position:relative;
+    box-shadow:0 0 30px -3px var(--cyan), inset 0 0 18px rgba(43,227,255,.2);
+    background:radial-gradient(circle, rgba(43,227,255,.08), transparent 70%);
+  }
+  .brand-badge::before{
+    content:'';position:absolute;inset:-9px;border-radius:50%;
+    border:1px dashed rgba(43,227,255,.4);animation:spinCW 14s linear infinite;
+  }
+  .brand-badge::after{
+    content:'';position:absolute;inset:-16px;border-radius:50%;
+    border:1px dotted rgba(195,155,255,.3);animation:spinCCW 22s linear infinite;
+  }
+  .nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;background:none;border:1px solid transparent;color:var(--paper-dim);
+    padding:9px 10px;border-radius:9px;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;font-size:12.5px;
+    text-align:left;line-height:1.3;transition:background .15s,border-color .15s,color .15s;
+  }
+  .nav-item .ic{
+    font-size:13px;width:26px;height:26px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.06);
+  }
+  .nav-item:hover{background:rgba(43,227,255,.08);color:var(--paper);}
+  .nav-item.active{background:rgba(43,227,255,.14);border-color:var(--rule);color:var(--cyan);box-shadow:inset 3px 0 0 var(--cyan);font-weight:600;}
+  .nav-item.active .ic{border-color:var(--cyan);background:rgba(43,227,255,.18);box-shadow:0 0 10px -1px var(--cyan);}
+  .sys-status{border-top:1px solid var(--border-soft);padding-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--paper-dimmer);}
+  .sys-title{letter-spacing:.16em;margin-bottom:9px;color:var(--paper-dim);}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--paper-dimmer);}
+  .dot.online{background:var(--green);color:var(--green);box-shadow:0 0 8px var(--green);animation:pulseDot 2s ease-in-out infinite;}
+  .dot.off{background:var(--red);color:var(--red);box-shadow:0 0 8px var(--red);}
+  .sys-line{color:var(--green);margin-bottom:5px;letter-spacing:.05em;}
+  .sys-sub{margin-bottom:3px;letter-spacing:.03em;}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;padding:26px 30px 80px;}
+  .wrap{max-width:1220px;margin:0 auto;}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin:0 0 8px;}
+  h1{font-family:'Noto Serif Thai',serif;font-weight:700;font-size:clamp(24px,3.4vw,34px);margin:0 0 4px;}
+  .sub{color:var(--paper-dim);font-size:13px;margin:0 0 22px;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
+  h1{text-shadow:0 0 30px rgba(43,227,255,.25);}
+  .lastupdate{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-dim);letter-spacing:.05em;
+    background:var(--panel);backdrop-filter:blur(6px);border:1px solid var(--border-soft);padding:8px 16px;border-radius:20px;white-space:nowrap;
+    box-shadow:0 0 20px -8px var(--cyan);
+  }
+  .lastupdate span#lastUpdateText{color:var(--paper);font-weight:600;}
+
+  /* status cards + hero gauge grid */
+  .top-grid{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:24px;align-items:stretch;}
+  @media(max-width:900px){.top-grid{grid-template-columns:1fr;}}
+  .left-col{display:flex;flex-direction:column;gap:12px;}
+  .status-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:620px){.status-row{grid-template-columns:1fr;}}
+  .status-card{
+    background:linear-gradient(160deg, var(--panel), #0a1424aa);backdrop-filter:blur(6px);
+    border:1px solid var(--border-soft);border-radius:12px;overflow:hidden;align-self:start;
+    transition:box-shadow .2s, border-color .2s;
+  }
+  .status-card:hover{border-color:var(--rule);box-shadow:0 0 26px -10px var(--cyan);}
+  .status-card summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+  .status-card summary::-webkit-details-marker{display:none;}
+  .sc-icon{
+    font-size:16px;line-height:1;width:34px;height:34px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(43,227,255,.08);border:1px solid var(--rule);box-shadow:0 0 14px -4px var(--cyan);
+  }
+  .sc-body{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .sc-title{font-size:12px;color:var(--paper);font-weight:500;}
+  .sc-sub{display:flex;align-items:center;font-size:11px;color:var(--paper-dim);font-family:'IBM Plex Mono',monospace;}
+  .sc-meta{display:flex;flex-direction:column;gap:4px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-soft);}
+  .sc-meta-row{display:flex;justify-content:space-between;gap:10px;font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--paper-dimmer);}
+  .sc-meta-row b{color:var(--paper-dim);font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;}
+
+  .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;}
+  @media(max-width:760px){.quick-stats{grid-template-columns:repeat(2,1fr);}}
+  .stat-chip{
+    background:linear-gradient(160deg, var(--panel), #0a1424aa);backdrop-filter:blur(6px);
+    border:1px solid var(--border-soft);border-radius:12px;padding:14px 10px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;
+  }
+  .stat-chip::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--chip-color,var(--cyan));box-shadow:0 0 10px var(--chip-color,var(--cyan));}
+  .stat-chip .sc-val{font-family:'Orbitron',monospace;font-size:19px;font-weight:700;color:var(--chip-color,var(--cyan));text-shadow:0 0 14px currentColor;}
+  .stat-chip .sc-lbl{font-size:9.5px;color:var(--paper-dim);margin-top:5px;letter-spacing:.02em;line-height:1.3;}
+  .stat-chip.c-cyan{--chip-color:var(--cyan);}
+  .stat-chip.c-teal{--chip-color:var(--teal);}
+  .stat-chip.c-purple{--chip-color:var(--coral);}
+  .stat-chip.c-green{--chip-color:var(--green);}
+
+  .hero-gauge{
+    background:linear-gradient(160deg, var(--panel), #0a1424aa);backdrop-filter:blur(6px);
+    border:1px solid var(--border-soft);border-radius:18px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px;position:relative;
+  }
+  .hero-gauge .ring{
+    width:150px;height:150px;border-radius:50%;position:relative;margin-bottom:10px;
+    background:conic-gradient(var(--cyan) 0deg var(--fill,300deg), rgba(255,255,255,.06) var(--fill,300deg) 360deg);
+    box-shadow:0 0 38px -6px var(--cyan);
+  }
+  .hero-gauge .ring::before{
+    content:'';position:absolute;inset:-10px;border-radius:50%;
+    border:1px dashed rgba(43,227,255,.35);animation:spinCW 16s linear infinite;
+  }
+  .hero-gauge .ring::after{content:'';position:absolute;inset:14px;background:var(--panel);border-radius:50%;box-shadow:inset 0 0 22px rgba(43,227,255,.12);}
+  .hero-gauge .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;text-align:center;padding:0 10px;}
+  .hero-gauge .ring-label{font-size:9.5px;color:var(--paper-dim);margin-bottom:6px;line-height:1.3;letter-spacing:.04em;text-transform:uppercase;}
+  .hero-gauge .ring-value{font-family:'Orbitron',monospace;font-size:17px;font-weight:700;color:var(--gold);text-shadow:0 0 16px rgba(43,227,255,.6);animation:flicker 5s infinite;}
+  .hero-gauge .trend{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;margin-top:5px;}
+  .hero-gauge .trend.up{color:var(--green);}
+  .hero-gauge .trend.down{color:var(--red);}
+  .hero-gauge .trend-sub{font-size:10px;color:var(--paper-dim);margin-top:2px;letter-spacing:.03em;}
+
+  .period-row{margin-bottom:6px;}
+  .period-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-dim);letter-spacing:.14em;margin-bottom:10px;text-transform:uppercase;}
+
+  /* Settings (panels rendered inside #content) */
+  details.settings{
+    background:linear-gradient(160deg, var(--panel), #0a1424aa);backdrop-filter:blur(6px);
+    border:1px solid var(--rule);border-radius:10px;margin-bottom:22px;padding:0;position:relative;
+  }
+  details.settings::before,details.settings::after{
+    content:'';position:absolute;width:14px;height:14px;border:2px solid var(--cyan);opacity:.45;pointer-events:none;
+  }
+  details.settings::before{top:-1px;left:-1px;border-right:none;border-bottom:none;border-radius:6px 0 0 0;}
+  details.settings::after{bottom:-1px;right:-1px;border-left:none;border-top:none;border-radius:0 0 6px 0;}
+  details.settings summary{cursor:pointer;padding:12px 16px;font-size:13px;color:var(--gold);font-weight:600;list-style:none;}
+  details.settings summary::-webkit-details-marker{display:none;}
+  .settings-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:0 16px 16px;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:11px;color:var(--paper-dim);}
+  .field input{
+    background:var(--panel-2);border:1px solid var(--rule);color:var(--paper);
+    border-radius:6px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;width:100%;
+  }
+
+  /* Tabs -> circular HUD badges */
+  .tabs{display:flex;gap:10px;overflow-x:auto;margin-bottom:22px;padding:2px 2px 8px;}
+  .tab{
+    flex:0 0 auto;width:56px;height:56px;border-radius:50%;background:var(--panel);border:1px solid var(--border-soft);
+    color:var(--paper-dim);font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;white-space:nowrap;
+    display:flex;align-items:center;justify-content:center;transition:box-shadow .15s,border-color .15s,color .15s,transform .15s;
+  }
+  .tab:hover{border-color:var(--rule);color:var(--paper);transform:translateY(-1px);}
+  .tab.active{background:rgba(43,227,255,.12);color:var(--gold);border-color:var(--gold);font-weight:700;box-shadow:0 0 22px -4px var(--gold), inset 0 0 12px rgba(43,227,255,.2);transform:translateY(-1px);}
+  .tab.overview{border-color:rgba(45,255,196,.4);color:var(--teal);width:auto;padding:0 20px;border-radius:28px;}
+  .tab.overview.active{background:rgba(45,255,196,.12);color:var(--teal);border-color:var(--teal);box-shadow:0 0 22px -4px var(--teal), inset 0 0 12px rgba(45,255,196,.2);}
+
+  .hero{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:8px;width:100%;}
+  @media(max-width:760px){.hero{grid-template-columns:1fr;}}
+  .stamp{
+    position:relative;overflow:hidden;border-radius:16px;padding:18px 18px 20px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,.06), transparent 60%),
+      linear-gradient(160deg, var(--panel-2), #0a1424);
+    border:1px solid var(--rule);
+    display:flex;flex-direction:column;align-items:center;
+    box-shadow:0 0 34px -14px var(--ring-color,var(--gold));
+    transition:box-shadow .2s, transform .2s;
+  }
+  .stamp:hover{box-shadow:0 0 44px -10px var(--ring-color,var(--gold));transform:translateY(-2px);}
+  .stamp::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ring-color,var(--gold));box-shadow:0 0 12px var(--ring-color,var(--gold));}
+  .stamp::after{
+    content:'';position:absolute;width:15px;height:15px;top:10px;right:10px;
+    border:2px solid var(--ring-color,var(--gold));opacity:.5;border-left:none;border-bottom:none;border-radius:0 6px 0 0;
+  }
+  .stamp.gross{--ring-color:var(--gold);}
+  .stamp.ded{--ring-color:var(--coral);}
+  .stamp.net{--ring-color:var(--teal);}
+  .stamp-head{display:flex;align-items:center;gap:8px;align-self:flex-start;margin-bottom:16px;}
+  .stamp-dot{width:8px;height:8px;border-radius:50%;background:var(--ring-color);box-shadow:0 0 9px var(--ring-color);flex:0 0 auto;}
+  .stamp-title{font-size:11.5px;color:var(--paper-dim);letter-spacing:.08em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+  .stamp-body{display:flex;justify-content:center;width:100%;padding:2px 0 14px;}
+  .stamp-ring{
+    width:168px;height:168px;max-width:100%;border-radius:50%;position:relative;
+    background:conic-gradient(var(--ring-color) 0deg var(--fill,300deg), rgba(255,255,255,.07) var(--fill,300deg) 360deg);
+    box-shadow:0 0 36px -8px var(--ring-color);
+  }
+  .stamp-ring::before{content:'';position:absolute;inset:-9px;border-radius:50%;border:1px dashed rgba(255,255,255,.14);animation:spinCW 20s linear infinite;}
+  .stamp-ring::after{content:'';position:absolute;inset:13px;background:var(--panel-2);border-radius:50%;box-shadow:inset 0 0 22px rgba(0,0,0,.4);}
+  .stamp-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;text-align:center;padding:0 10px;}
+  .stamp-num{font-family:'Orbitron',monospace;font-size:24px;font-weight:700;color:var(--ring-color);text-shadow:0 0 18px currentColor;line-height:1.1;}
+  .stamp-sub{font-size:10.5px;color:var(--paper-dim);margin-top:8px;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;}
+  .stamp-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);width:100%;overflow:hidden;}
+  .stamp-bar-fill{height:100%;border-radius:3px;background:var(--ring-color);box-shadow:0 0 10px var(--ring-color);transition:width .3s;}
+
+  .section-title{font-family:'Noto Serif Thai',serif;font-size:15px;font-weight:700;margin:0 0 12px;padding-bottom:7px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:baseline;position:relative;}
+  .section-title::before{content:'';position:absolute;left:0;bottom:-1px;width:44px;height:1px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+  .section-title .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-dim);font-weight:400;}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:8px;}
+  .day{
+    position:relative;overflow:hidden;background:linear-gradient(165deg,var(--panel),#0a1424);
+    border:1px solid var(--rule);border-radius:10px;padding:9px 9px 10px;display:flex;flex-direction:column;gap:6px;
+    transition:box-shadow .15s,transform .12s,border-color .15s;
+  }
+  .day::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--daycol,var(--rule));opacity:.85;}
+  .day:hover{transform:translateY(-1px);box-shadow:0 0 16px -6px var(--daycol,var(--cyan));}
+  .day.work{--daycol:var(--work-red);border-color:rgba(255,107,139,.35);}
+  .day.off{--daycol:var(--off-blue);border-color:rgba(91,155,247,.3);opacity:.72;}
+  .day.vacation{--daycol:var(--vac-green);border-color:rgba(74,222,128,.35);}
+  .day.vacation-half{--daycol:var(--paper);border-color:rgba(234,244,255,.3);}
+  .day.vacation-half::before{background-image:repeating-linear-gradient(90deg,var(--paper) 0 6px,transparent 6px 12px);background-color:transparent;}
+  .day.personal{--daycol:var(--coral);border-color:rgba(195,155,255,.35);}
+  .day.off-ot{--daycol:var(--gold);border-color:rgba(43,227,255,.35);}
+  .day.off-ot::before{background-image:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 12px);background-color:transparent;}
+  .d-row{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+  .day .d{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--paper-dim);letter-spacing:.02em;}
+  .d-veh{
+    font-size:13px;line-height:1;width:22px;height:22px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);
+    border:1px solid var(--border-soft);transition:box-shadow .15s,border-color .15s;
+  }
+  .d-veh:not(.off){border-color:var(--daycol,var(--cyan));box-shadow:0 0 8px -1px var(--daycol,var(--cyan));}
+  .d-veh.off{opacity:.3;font-size:10px;color:var(--paper-dimmer);}
+  .day select{width:100%;background:var(--panel-2);color:var(--paper);border:1px solid var(--rule);border-radius:5px;font-size:10px;padding:3px 4px;font-family:'IBM Plex Sans Thai',sans-serif;}
+  .vtoggle{display:flex;gap:3px;}
+  .vbtn{
+    flex:1;background:var(--panel-2);border:1px solid var(--rule);border-radius:5px;padding:3px 2px;
+    font-size:9px;cursor:pointer;color:var(--paper-dim);font-family:'IBM Plex Sans Thai',sans-serif;
+    transition:box-shadow .15s,border-color .15s,background .15s,color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .vbtn:disabled{opacity:.22;cursor:not-allowed;}
+  .vbtn.active.moto{border-color:var(--cyan);background:rgba(43,227,255,.14);box-shadow:0 0 9px -2px var(--cyan);color:var(--cyan);font-weight:600;}
+  .vbtn.active.car{border-color:var(--coral);background:rgba(195,155,255,.14);box-shadow:0 0 9px -2px var(--coral);color:var(--coral);font-weight:600;}
+  .otgrid{display:flex;gap:3px;}
+  .day input{width:100%;background:var(--panel-2);color:var(--gold);border:1px solid var(--rule);border-radius:5px;font-size:11px;padding:3px 2px;font-family:'IBM Plex Mono',monospace;text-align:center;min-width:0;}
+  .day input:disabled{opacity:.25;}
+  .legend{display:flex;gap:16px;margin:6px 0 26px;font-size:11px;color:var(--paper-dim);flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .daycounts{display:flex;gap:18px;font-size:12px;color:var(--paper-dim);margin-bottom:22px;font-family:'IBM Plex Mono',monospace;flex-wrap:wrap;}
+  .daycounts b{color:var(--paper);}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:30px;}
+  @media(max-width:640px){.cols{grid-template-columns:1fr;} .cal-grid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));}}
+  .fieldset-title{font-size:12px;color:var(--paper-dim);margin:14px 0 8px;}
+
+  .bar-row{margin-bottom:12px;}
+  .bar-row .top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+  .bar-row .top .amt{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .bar-track{height:7px;background:var(--panel-2);border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:4px;}
+
+  /* overview table */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px;}
+  th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;}
+  th:first-child,td:first-child{text-align:left;font-family:'IBM Plex Sans Thai',sans-serif;}
+  thead th{color:var(--paper-dim);font-weight:500;font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--cyan);}
+  tbody tr:hover td{background:rgba(43,227,255,.04);}
+  tr.total td{font-weight:700;color:var(--gold);border-top:2px solid var(--cyan);border-bottom:none;text-shadow:0 0 10px rgba(43,227,255,.4);}
+
+  .ybar-wrap{display:flex;align-items:flex-end;gap:10px;height:180px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;}
+  .ybar-col{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;}
+  .ybar{width:22px;border-radius:2px 2px 0 0;}
+  .ybar.g{background:var(--gold);}
+  .ybar.d{background:var(--coral);}
+  .ybar-pair{display:flex;gap:3px;align-items:flex-end;height:140px;}
+  .ybar-lbl{font-size:10px;color:var(--paper-dim);font-family:'IBM Plex Mono',monospace;}
+
+  .footnote{margin-top:20px;padding-top:14px;border-top:1px solid var(--rule);font-size:11px;color:var(--paper-dim);line-height:1.7;}
+  .reset-btn{
+    background:rgba(255,255,255,.02);border:1px solid var(--coral);color:var(--coral);font-size:11px;padding:7px 14px;
+    border-radius:20px;cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;
+    transition:box-shadow .15s,background .15s,transform .1s;
+  }
+  .reset-btn:hover{box-shadow:0 0 16px -4px currentColor;background:rgba(255,255,255,.05);transform:translateY(-1px);}
+  .reset-btn:active{transform:translateY(0);}
+
+  .donut-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;}
+  .donut-cols .donut-card:nth-child(3){grid-column:1 / -1;}
+  .donut-card{background:linear-gradient(160deg,var(--panel-2),#0a1424);border:1px solid var(--rule);border-radius:10px;padding:14px 16px 16px;position:relative;overflow:hidden;}
+  .donut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5;}
+  .donut-card .section-title{margin-bottom:10px;}
+  @media(max-width:820px){.donut-cols{grid-template-columns:1fr;} .donut-cols .donut-card:nth-child(3){grid-column:auto;}}
+  .donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:8px;}
+  .donut{width:130px;height:130px;border-radius:50%;position:relative;flex:0 0 auto;background:var(--panel-2);box-shadow:0 0 26px -10px var(--cyan);}
+  .donut::after{content:'';position:absolute;inset:16px;background:var(--ink);border-radius:50%;box-shadow:inset 0 0 16px rgba(43,227,255,.1);}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;z-index:1;}
+  .donut-center .pct{font-size:18px;font-weight:600;color:var(--gold);text-shadow:0 0 10px rgba(43,227,255,.5);}
+  .donut-center .lbl{font-size:9px;color:var(--paper-dim);letter-spacing:.04em;text-align:center;}
+  .donut-legend{font-size:12px;}
+  .donut-legend div{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .mini-rank{margin-top:10px;padding-top:12px;border-top:1px dashed var(--rule);}
+  .mini-rank .mr-title{font-size:10px;color:var(--paper-dim);letter-spacing:.08em;margin-bottom:9px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+  .mini-rank .mr-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--paper-dim);margin-bottom:8px;}
+  .mini-rank .mr-row .mr-rank{
+    width:18px;height:18px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--ink);background:var(--gold);box-shadow:0 0 8px -1px var(--gold);
+  }
+  .mini-rank .mr-row:nth-child(3) .mr-rank{background:var(--teal);box-shadow:0 0 8px -1px var(--teal);}
+  .mini-rank .mr-row:nth-child(4) .mr-rank{background:var(--coral);box-shadow:0 0 8px -1px var(--coral);}
+  .mini-rank .mr-row .mr-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mini-rank .mr-row b{color:var(--paper);font-family:'IBM Plex Mono',monospace;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-badge">OT</div></div>
+    <nav class="nav" id="navList">
+      <button class="nav-item active" data-nav="overview"><span class="ic">🏠</span><span>ภาพรวม</span></button>
+      <button class="nav-item" data-nav="monthly"><span class="ic">📊</span><span>รายงานรายเดือน</span></button>
+      <button class="nav-item" data-nav="calendar"><span class="ic">📋</span><span>รายการค่าแรง</span></button>
+      <button class="nav-item" data-nav="employee"><span class="ic">👤</span><span>พนักงาน</span></button>
+      <button class="nav-item" data-nav="settings"><span class="ic">⚙</span><span>ตั้งค่า</span></button>
+      <button class="nav-item" data-nav="help"><span class="ic">❓</span><span>ช่วยเหลือ</span></button>
+    </nav>
+    <div class="sys-status">
+      <div class="sys-title">SYSTEM STATUS</div>
+      <div class="sys-line"><span class="dot online"></span>ONLINE</div>
+      <div class="sys-sub">SERVER : OK</div>
+      <div class="sys-sub" id="sysApiLine">API : ...</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Overtime &amp; Payroll Ledger — Yearly</p>
+          <h1>สรุปค่าแรง OT รายปี</h1>
+          <p class="sub" style="margin-bottom:0">งวดเงินเดือนแบบ 16 ของเดือน ถึง 15 ของเดือนถัดไป · แก้ไขได้ทุกช่อง ข้อมูลจะถูกบันทึกไว้ในเบราว์เซอร์นี้อัตโนมัติ</p>
+        </div>
+        <div class="lastupdate"><span class="dot online"></span>LAST UPDATE : <span id="lastUpdateText">-</span></div>
+      </header>
+
+      <div class="top-grid">
+        <div class="left-col">
+        <section class="status-row" id="statusRow">
+          <details class="status-card sync">
+            <summary>
+              <span class="sc-icon">🔗</span>
+              <span class="sc-body">
+                <span class="sc-title">เชื่อมต่อฐานข้อมูลออนไลน์ (Supabase)</span>
+                <span class="sc-sub"><span class="dot" id="syncDot"></span><span id="syncStatus">ยังไม่เชื่อมต่อ</span></span>
+                <span class="sc-meta">
+                  <span class="sc-meta-row"><span>โปรเจกต์</span><b id="scMetaProject">igkqkovgxnywmfidnndk</b></span>
+                  <span class="sc-meta-row"><span>ตาราง</span><b>ot_ledger_state</b></span>
+                  <span class="sc-meta-row"><span>โหมด</span><b>Realtime push (0.9s debounce)</b></span>
+                </span>
+              </span>
+            </summary>
+            <div class="settings-body" style="grid-template-columns:1fr;">
+              <div class="field">
+                <label>Supabase Project URL</label>
+                <input type="text" id="supaUrl" value="https://igkqkovgxnywmfidnndk.supabase.co" placeholder="https://xxxxxxxxxxxx.supabase.co">
+              </div>
+              <div class="field">
+                <label>Supabase Anon (public) Key</label>
+                <input type="text" id="supaKey" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlna3Frb3ZneG55d21maWRubmRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NTU3NjQsImV4cCI6MjEwMTMzMTc2NH0.RTRWVFdpNAuANzMtA6APhD1fOlUZrFAnLGTgqRq2Zn4" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <button class="reset-btn" id="syncSaveBtn" style="border-color:var(--teal);color:var(--teal);">บันทึก &amp; ซิงก์</button>
+                <button class="reset-btn" id="syncPushBtn">อัปโหลดข้อมูลเครื่องนี้ขึ้น Supabase</button>
+              </div>
+              <p style="font-size:11px;color:var(--paper-dim);margin:4px 0 0;grid-column:1/-1;">
+                ต้องสร้างตารางชื่อ <code>ot_ledger_state</code> (คอลัมน์ id text, data jsonb, updated_at timestamptz) ใน Supabase ก่อน
+              </p>
+            </div>
+          </details>
+
+          <details class="status-card import">
+            <summary>
+              <span class="sc-icon">📥</span>
+              <span class="sc-body">
+                <span class="sc-title">นำเข้าข้อมูลเก่า (.json)</span>
+                <span class="sc-sub"><span class="dot off" id="importDot"></span><span id="importStatusTop">ยังไม่ได้นำเข้า</span></span>
+                <span class="sc-meta">
+                  <span class="sc-meta-row"><span>รูปแบบไฟล์</span><b>.json</b></span>
+                  <span class="sc-meta-row"><span>ที่มา</span><b>Google Sheet เดิม</b></span>
+                  <span class="sc-meta-row"><span>ผลลัพธ์</span><b>แทนที่ข้อมูลในเครื่องนี้ทั้งหมด</b></span>
+                </span>
+              </span>
+            </summary>
+            <div class="settings-body" style="grid-template-columns:1fr;">
+              <div class="field">
+                <label>เลือกไฟล์ .json (ส่งออกจาก Google Sheet เดิม)</label>
+                <input type="file" id="importFile" accept="application/json,.json">
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <button class="reset-btn" id="importBtn" style="border-color:var(--gold);color:var(--gold);">นำเข้าไฟล์นี้ (แทนที่ข้อมูลทั้งหมดในเครื่องนี้)</button>
+                <span id="importStatus" style="font-size:11px;color:var(--paper-dim);font-family:'IBM Plex Mono',monospace;"></span>
+              </div>
+              <p style="font-size:11px;color:var(--paper-dim);margin:4px 0 0;">
+                ใช้ครั้งเดียวตอนย้ายจาก Google Sheet เดิมมา Supabase: นำเข้าไฟล์นี้ก่อน แล้วค่อยตั้งค่า Supabase URL/Key ด้านบน (หรือสลับลำดับก็ได้ ระบบจะซิงก์ค่าล่าสุดขึ้น Supabase ให้อัตโนมัติทุกครั้งที่มีการแก้ไข)
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <div class="quick-stats" id="quickStats"></div>
+        </div>
+
+        <div class="hero-gauge" id="heroGauge"></div>
+      </div>
+
+      <div class="period-row" id="periodRow">
+        <div class="period-label">งวดปัจจุบัน</div>
+        <div class="tabs" id="tabs"></div>
+      </div>
+
+
+      <div id="content"></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const MONTH_TH = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const STORE_KEY = "ot_ledger_state_v1";
+const YEAR = 2026;
+
+function daysInMonth(m,y){ return new Date(y, m+1, 0).getDate(); }
+
+function defaultExtra(){
+  return {salary:0, baseWage:5000, col:1050, shift:0, diligence:800, car:0,
+          tax:0, sso:875, fund:1364, kss:1179, other2:800, other3:150};
+}
+
+function defaultRates(){
+  return {ot15:178.23, ot2:237.65, ot3:356.47, meal:63, mealot:30, moto:90, car:90};
+}
+
+function periodDays(m, y){
+  const list = [];
+  const endM = daysInMonth(m, y);
+  for(let d=16; d<=endM; d++) list.push({month:m, year:y, day:d});
+  const nm = (m+1)%12, ny = (m===11) ? y+1 : y;
+  for(let d=1; d<=15; d++) list.push({month:nm, year:ny, day:d});
+  return list;
+}
+function dayKey(dd){ return `${dd.year}-${dd.month}-${dd.day}`; }
+
+function decDefaults(){
+  // historical sample data for the ธันวาคม(11) period, as given by the user's original sheet
+  const otMap = {16:2.3,17:0,18:2,19:'off',20:'off',21:2.3,22:0,23:2.3,24:0,25:1.5,
+    26:'off',27:'off',28:'off',29:'off',30:'off',31:'off',1:'off',2:'off',3:'off',
+    4:2.3,5:0,6:2.3,7:0,8:1.5,9:'off',10:'off',11:2.3,12:0,13:2.3,14:0,15:1.5};
+  const days = {};
+  periodDays(11, YEAR).forEach(dd=>{
+    const raw = otMap[dd.day];
+    days[dayKey(dd)] = raw==='off' ? {type:'off', ot15:0, ot2:0, ot3:0} : {type:'work', ot15: raw||0, ot2:0, ot3:0, vehicle:'moto'};
+  });
+  const extra = defaultExtra();
+  return {days, extra, rates: defaultRates()};
+}
+
+function emptyMonth(m){
+  const days = {};
+  periodDays(m, YEAR).forEach(dd=>{ days[dayKey(dd)] = {type:'work', ot15:0, ot2:0, ot3:0, vehicle:'moto'}; });
+  return {days, extra: defaultExtra(), rates: defaultRates()};
+}
+
+function migrateState(s){
+  // เติม/ซ่อมโครงสร้างข้อมูลให้ครบสคีมาปัจจุบันเสมอ ไม่ว่าจะมาจาก localStorage หรือดึงจาก Google Sheet
+  if(!s || typeof s !== 'object') s = {};
+  if(!s.months) s.months = {};
+  for(let m=0;m<12;m++){
+    if(!s.months[m]) s.months[m] = (m===11) ? decDefaults() : emptyMonth(m);
+  }
+  Object.values(s.months).forEach(ms=>{
+    if(!ms.days) ms.days = {};
+    Object.values(ms.days).forEach(d=>{
+      if(d.ot15===undefined){ d.ot15 = d.ot||0; delete d.ot; }
+      if(d.ot2===undefined) d.ot2 = 0;
+      if(d.ot3===undefined) d.ot3 = 0;
+      if(d.vehicle===undefined) d.vehicle = 'moto';
+    });
+    if(!ms.extra) ms.extra = defaultExtra();
+    else { delete ms.extra.ot2h; delete ms.extra.ot3h; if(ms.extra.salary===undefined) ms.extra.salary = 0; }
+    // migrate: อัตราค่าแรงเคยใช้ร่วมกันทุกเดือน (s.rates) -> ตอนนี้แยกเก็บต่อเดือน
+    if(!ms.rates){ ms.rates = s.rates ? {...s.rates} : defaultRates(); }
+  });
+  delete s.rates; // เลิกใช้อัตรากลาง
+  return s;
+}
+
+function loadState(){
+  const saved = localStorage.getItem(STORE_KEY);
+  if(saved){
+    try{
+      return migrateState(JSON.parse(saved));
+    }catch(e){}
+  }
+  const months = {};
+  for(let m=0;m<12;m++){ months[m] = (m===11) ? decDefaults() : emptyMonth(m); }
+  return { months };
+}
+let state = loadState();
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); scheduleRemotePush(); refreshLastUpdate(); }
+
+/* ---------- Supabase sync ---------- */
+const SUPA_URL_KEY = "ot_supabase_url";
+const SUPA_ANON_KEY = "ot_supabase_anon_key";
+const SUPA_ROW_ID = "ot_ledger_2026"; // แถวเดียวที่ใช้เก็บ state ทั้งก้อนในตาราง ot_ledger_state
+let supaClient = null;
+
+function getSupaUrl(){ return localStorage.getItem(SUPA_URL_KEY) || ""; }
+function getSupaKey(){ return localStorage.getItem(SUPA_ANON_KEY) || ""; }
+function setSupaCreds(u,k){ localStorage.setItem(SUPA_URL_KEY, u); localStorage.setItem(SUPA_ANON_KEY, k); }
+function nowTimeStr(){ return new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}); }
+function setSyncStatus(text){
+  const el = document.getElementById('syncStatus'); if(el) el.textContent = text;
+  const dot = document.getElementById('syncDot');
+  if(dot){
+    dot.className = 'dot ' + (text.includes('ซิงก์ล่าสุด') ? 'online' : (text.includes('ไม่สำเร็จ') || text.includes('ไม่')) ? 'off' : '');
+  }
+  refreshSysStatus();
+}
+
+function ensureSupaClient(){
+  const url = getSupaUrl(), key = getSupaKey();
+  if(!url || !key) return null;
+  if(!window.supabase || !window.supabase.createClient){
+    setSyncStatus('โหลดไลบรารี Supabase ไม่สำเร็จ (เช็คอินเทอร์เน็ต/ตัวบล็อกสคริปต์)');
+    return null;
+  }
+  if(!supaClient || supaClient.__url !== url || supaClient.__key !== key){
+    supaClient = window.supabase.createClient(url, key);
+    supaClient.__url = url; supaClient.__key = key;
+  }
+  return supaClient;
+}
+
+async function fetchRemoteState(){
+  const client = ensureSupaClient();
+  if(!client) throw new Error('no client');
+  const { data, error } = await client
+    .from('ot_ledger_state')
+    .select('data')
+    .eq('id', SUPA_ROW_ID)
+    .maybeSingle();
+  if(error) throw error;
+  return (data && data.data && data.data.months) ? data.data : null;
+}
+
+async function pushRemoteState(stateObj){
+  const client = ensureSupaClient();
+  if(!client) throw new Error('no client');
+  const { error } = await client
+    .from('ot_ledger_state')
+    .upsert({ id: SUPA_ROW_ID, data: stateObj, updated_at: new Date().toISOString() });
+  if(error) throw error;
+}
+
+let pushTimer = null;
+function scheduleRemotePush(){
+  if(!getSupaUrl() || !getSupaKey()) return;
+  clearTimeout(pushTimer);
+  setSyncStatus('กำลังบันทึกขึ้น Supabase...');
+  pushTimer = setTimeout(()=>{
+    pushRemoteState(state)
+      .then(()=> setSyncStatus('ซิงก์ล่าสุด: '+nowTimeStr()))
+      .catch((err)=>{ console.error(err); setSyncStatus('บันทึกขึ้น Supabase ไม่สำเร็จ (บันทึกในเครื่องนี้แล้ว) — เช็ค URL/Key/ตาราง'); });
+  }, 900);
+}
+
+async function pullRemoteOnLoad(){
+  if(!getSupaUrl() || !getSupaKey()) return;
+  setSyncStatus('กำลังโหลดจาก Supabase...');
+  try{
+    const remote = await fetchRemoteState();
+    if(remote){
+      state = migrateState(remote);
+      render();
+      setSyncStatus('ซิงก์ล่าสุด: '+nowTimeStr());
+    } else {
+      // ตารางยังว่างอยู่ -> อัปโหลดข้อมูลเครื่องนี้ขึ้นไปตั้งต้น
+      await pushRemoteState(state);
+      setSyncStatus('ตารางว่าง — อัปโหลดข้อมูลเครื่องนี้ขึ้นเป็นชุดแรกแล้ว');
+    }
+  }catch(err){
+    console.error(err);
+    setSyncStatus('เชื่อมต่อไม่สำเร็จ (ใช้ข้อมูลในเครื่องนี้แทน) — เช็ค URL/Key/ตาราง');
+  }
+}
+
+function attachSyncHandlers(){
+  const urlInput = document.getElementById('supaUrl');
+  const keyInput = document.getElementById('supaKey');
+  const saveBtn = document.getElementById('syncSaveBtn');
+  const pushBtn = document.getElementById('syncPushBtn');
+  if(!urlInput) return;
+  const savedUrl = getSupaUrl(), savedKey = getSupaKey();
+  if(savedUrl || savedKey){
+    urlInput.value = savedUrl;
+    keyInput.value = savedKey;
+  } else if(urlInput.value.trim() && keyInput.value.trim()){
+    // ยังไม่เคยตั้งค่าไว้ในเครื่องนี้ -> ใช้ค่าที่ฝังมากับไฟล์เป็นค่าเริ่มต้นครั้งแรก
+    setSupaCreds(urlInput.value.trim(), keyInput.value.trim());
+  }
+  if(getSupaUrl() && getSupaKey()) setSyncStatus('พร้อมซิงก์ — กำลังตรวจสอบ...');
+  saveBtn.onclick = ()=>{
+    const u = urlInput.value.trim(), k = keyInput.value.trim();
+    setSupaCreds(u, k);
+    supaClient = null; // บังคับสร้าง client ใหม่ด้วยค่าล่าสุด
+    if(u && k) pullRemoteOnLoad();
+    else setSyncStatus('ยังไม่เชื่อมต่อ');
+    refreshSysStatus();
+  };
+  pushBtn.onclick = async ()=>{
+    if(!getSupaUrl() || !getSupaKey()){ setSyncStatus('กรุณาใส่ URL และ Key แล้วกด "บันทึก & ซิงก์" ก่อน'); return; }
+    setSyncStatus('กำลังอัปโหลด...');
+    try{ await pushRemoteState(state); setSyncStatus('อัปโหลดขึ้น Supabase แล้ว: '+nowTimeStr()); }
+    catch(err){ console.error(err); setSyncStatus('อัปโหลดไม่สำเร็จ — เช็ค URL/Key/ตาราง'); }
+  };
+
+  const importFile = document.getElementById('importFile');
+  const importBtn = document.getElementById('importBtn');
+  const importStatusEl = document.getElementById('importStatus');
+  if(importBtn){
+    importBtn.onclick = ()=>{
+      const f = importFile.files && importFile.files[0];
+      if(!f){ importStatusEl.textContent = 'กรุณาเลือกไฟล์ .json ก่อน'; return; }
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try{
+          const parsed = JSON.parse(e.target.result);
+          if(!parsed || typeof parsed !== 'object' || !parsed.months) throw new Error('ไฟล์นี้ไม่มีโครงสร้าง "months" ที่ถูกต้อง');
+          state = migrateState(parsed);
+          save(); // เขียนลง localStorage และซิงก์ขึ้น Supabase อัตโนมัติถ้าตั้งค่าไว้แล้ว
+          render();
+          importStatusEl.textContent = 'นำเข้าสำเร็จ: ' + nowTimeStr();
+          const top = document.getElementById('importStatusTop');
+          if(top) top.textContent = 'อัปเดตล่าสุด: ' + nowTimeStr();
+          const dot = document.getElementById('importDot');
+          if(dot) dot.className = 'dot online';
+        }catch(err){
+          console.error(err);
+          importStatusEl.textContent = 'นำเข้าไม่สำเร็จ: ไฟล์ไม่ใช่ JSON ที่ถูกต้อง';
+        }
+      };
+      reader.readAsText(f, 'utf-8');
+    };
+  }
+}
+
+/* ---------- HUD chrome: sidebar nav, last-update clock, hero gauge ---------- */
+let lastMonthTab = 11;
+
+function refreshLastUpdate(){
+  const el = document.getElementById('lastUpdateText');
+  if(!el) return;
+  el.textContent = new Date().toLocaleString('th-TH', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+function refreshSysStatus(){
+  const el = document.getElementById('sysApiLine');
+  if(!el) return;
+  const connected = !!(getSupaUrl() && getSupaKey());
+  el.textContent = 'API : ' + (connected ? 'CONNECTED' : 'LOCAL ONLY');
+}
+
+function updateActiveNav(nav){
+  document.querySelectorAll('.nav-item').forEach(b=> b.classList.toggle('active', b.dataset.nav===nav));
+}
+
+function attachNavHandlers(){
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.onclick = ()=>{
+      const nav = btn.dataset.nav;
+      if(nav==='overview'){
+        activeTab = 'overview'; render();
+        window.scrollTo({top:0, behavior:'smooth'});
+      } else if(nav==='monthly'){
+        document.getElementById('periodRow').scrollIntoView({behavior:'smooth', block:'start'});
+      } else if(nav==='calendar'){
+        if(activeTab==='overview'){ activeTab = lastMonthTab; render(); }
+        setTimeout(()=>{ const el = document.getElementById('calGrid'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); }, 60);
+      } else if(nav==='employee'){
+        alert('ฟีเจอร์ "พนักงาน" ยังไม่เปิดใช้งานในเวอร์ชันนี้');
+        updateActiveNav(activeTab==='overview' ? 'overview' : 'monthly');
+        return;
+      } else if(nav==='settings'){
+        document.querySelectorAll('.status-card').forEach(d=> d.open = true);
+        document.getElementById('statusRow').scrollIntoView({behavior:'smooth', block:'start'});
+      } else if(nav==='help'){
+        const fn = document.querySelector('.footnote');
+        if(fn){ fn.scrollIntoView({behavior:'smooth', block:'start'}); }
+        else { alert('ศูนย์ช่วยเหลือ: สลับไปที่แท็บเดือนใดก็ได้เพื่อดูคำอธิบายวิธีใช้งานท้ายหน้า หรือดูสรุปรวมได้ที่แท็บ "ภาพรวมทั้งปี"'); }
+      }
+      updateActiveNav(nav);
+    };
+  });
+}
+
+function updateHeroGauge(){
+  const g = document.getElementById('heroGauge');
+  if(!g) return;
+  let label, value, trend, ratio;
+  if(activeTab==='overview'){
+    let totalNet = 0, totalGross = 0;
+    for(let m=0;m<12;m++){ const c = calcMonth(m); totalNet += c.net; totalGross += c.gross; }
+    label = 'ยอดรวมสุทธิทั้งปี';
+    value = totalNet;
+    ratio = totalGross>0 ? totalNet/totalGross : 0;
+    const curr = calcMonth(11).net, prev = calcMonth(10).net;
+    trend = prev ? ((curr-prev)/Math.abs(prev)*100) : null;
+  } else {
+    const m = activeTab;
+    const cm = calcMonth(m);
+    label = 'เงินสุทธิงวดนี้';
+    value = cm.net;
+    ratio = cm.gross>0 ? cm.net/cm.gross : 0;
+    if(m>0){ const curr = calcMonth(m).net, prev = calcMonth(m-1).net; trend = prev ? ((curr-prev)/Math.abs(prev)*100) : null; }
+    else trend = null;
+  }
+  const trendClass = trend===null ? '' : (trend>=0 ? 'up' : 'down');
+  const trendText = trend===null ? '—' : (trend>=0?'+':'')+trend.toFixed(1)+'%';
+  g.innerHTML = `
+    <div class="ring" style="--fill:${gaugeDeg(ratio)}deg">
+      <div class="ring-center">
+        <div class="ring-label">${label}</div>
+        <div class="ring-value">฿${fmt(value)}</div>
+      </div>
+    </div>
+    <div class="trend ${trendClass}">${trendText}</div>
+    <div class="trend-sub">จากเดือนที่แล้ว</div>
+  `;
+}
+
+let activeTab = 11; // start on December like the original file, 'overview' for summary
+
+function calcMonth(m){
+  const ms = state.months[m];
+  const r = ms.rates;
+  let workDays=0, otDays=0, ot15Hours=0, ot2Hours=0, ot3Hours=0, offDays=0, vacDays=0, persDays=0;
+  let offOtDays=0, vacHalfDays=0, otHolidayDays=0;
+  let carDays=0, motoDays=0;
+  Object.values(ms.days).forEach(d=>{
+    if(d.type==='work' || d.type==='off_ot'){
+      const h15=Number(d.ot15||0), h2=Number(d.ot2||0), h3=Number(d.ot3||0);
+      // ค่าอาหาร OT นับเฉพาะวัน "ทำงาน" ปกติที่มี OT เท่านั้น — วันหยุด-ทำ OT ไม่นับรวมค่าอาหาร OT (ได้แค่ค่าอาหารปกติ)
+      if(d.type==='work'){ workDays++; if(h15>0 || h2>0 || h3>0) otDays++; }
+      else { offOtDays++; if(h3>0) otHolidayDays++; } // วันหยุด-ทำ OT: มี OT3 (3 เท่า) เท่านั้นถึงจะนับเป็นค่าอาหาร OT วันหยุด (OT2 อย่างเดียวยังได้แค่ค่าอาหารปกติ)
+      ot15Hours+=h15; ot2Hours+=h2; ot3Hours+=h3;
+      if(d.vehicle==='car') carDays++; else motoDays++;
+    }
+    else if(d.type==='vacation_half'){
+      vacHalfDays++;
+      if(d.vehicle==='car') carDays++; else motoDays++;
+    }
+    else if(d.type==='off') offDays++;
+    else if(d.type==='vacation') vacDays++;
+    else if(d.type==='personal') persDays++;
+  });
+  const ex = ms.extra;
+  const ot15baht = ot15Hours*r.ot15, ot2baht = ot2Hours*r.ot2, ot3baht = ot3Hours*r.ot3;
+  // วันหยุดที่มาทำ OT (off_ot) และพักร้อนครึ่งวัน (vacation_half) ได้ค่าอาหาร/ค่ารถ-มอไซค์ปกติเหมือนวันทำงาน
+  // แต่ "ค่าอาหาร OT" (mealot) นับเฉพาะวันทำงานปกติที่มี OT เท่านั้น ไม่รวมวันหยุด-ทำ OT
+  // "ค่าอาหาร OT วันหยุด" (mealotHoliday) แยกต่างหาก นับเฉพาะวันหยุด-ทำ OT ที่มี OT2 และ/หรือ OT3
+  const mealBaht = (workDays+offOtDays+vacHalfDays)*r.meal, mealotBaht = otDays*r.mealot, mealotHolidayBaht = otHolidayDays*r.mealot;
+  const carBaht = carDays*r.car, motoBaht = motoDays*r.moto;
+  const income = {
+    salary:ex.salary, baseWage:ex.baseWage, col:ex.col, ot15:ot15baht, ot2:ot2baht, ot3:ot3baht,
+    shift:ex.shift, diligence:ex.diligence, meal:mealBaht, mealot:mealotBaht, mealotHoliday:mealotHolidayBaht, veCar:carBaht, veMoto:motoBaht, car:ex.car,
+    other2:ex.other2, other3:ex.other3
+  };
+  const gross = Object.values(income).reduce((a,b)=>a+b,0);
+  const deductions = ex.tax+ex.sso+ex.fund+ex.kss;
+  const net = gross-deductions;
+  return {income, gross, deductions, net, workDays, otDays, otHolidayDays, ot15Hours, ot2Hours, ot3Hours, offDays, vacDays, persDays, offOtDays, vacHalfDays};
+}
+
+function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+
+function renderTabs(){
+  const t = document.getElementById('tabs');
+  t.innerHTML = '';
+  for(let m=0;m<12;m++){
+    const b = document.createElement('button');
+    b.className = 'tab' + (activeTab===m ? ' active' : '');
+    b.textContent = MONTH_TH[m];
+    b.onclick = ()=>{ activeTab=m; lastMonthTab=m; render(); updateActiveNav('monthly'); };
+    t.appendChild(b);
+  }
+  const ov = document.createElement('button');
+  ov.className = 'tab overview' + (activeTab==='overview' ? ' active' : '');
+  ov.textContent = 'ภาพรวมทั้งปี';
+  ov.onclick = ()=>{ activeTab='overview'; render(); updateActiveNav('overview'); };
+  t.appendChild(ov);
+}
+
+function gaugeDeg(ratio){
+  const r = isFinite(ratio) ? ratio : 0;
+  return Math.max(10, Math.min(350, r*360)).toFixed(1);
+}
+
+function renderMonth(m){
+  const c = calcMonth(m);
+  const list = periodDays(m, YEAR);
+  const labelStart = `16 ${MONTH_TH[m]}`, labelEnd = `15 ${MONTH_TH[(m+1)%12]}`;
+
+  const attendRatio = (c.workDays+c.offOtDays)/list.length;
+  const dedRatio = c.gross>0 ? c.deductions/c.gross : 0;
+  const netRatio = c.gross>0 ? c.net/c.gross : 0;
+
+  let html = `
+    <p class="sub" style="margin-top:-14px">งวด ${labelStart} – ${labelEnd} ${YEAR}</p>
+    <button class="reset-btn" id="exportMonthBtn" style="border-color:var(--teal);color:var(--teal);margin-bottom:14px;margin-right:10px;">📄 ดาวน์โหลด PDF เดือนนี้</button>
+    <button class="reset-btn" id="exportMonthCsvBtn" style="border-color:var(--gold);color:var(--gold);margin-bottom:14px;">📊 ดาวน์โหลด CSV เดือนนี้</button>
+    <details class="settings" open>
+      <summary>สรุปรายรับ-รายจ่าย</summary>
+      <div style="padding:4px 16px 16px">
+        <div class="hero">
+          <div class="stamp gross" style="--fill:${gaugeDeg(attendRatio)}deg">
+            <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">รวมรายรับ</span></div>
+            <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(c.gross)}</div><div class="stamp-sub">อัตราเข้างาน ${(attendRatio*100).toFixed(0)}%</div></div></div></div>
+            <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(attendRatio*100).toFixed(0)}%"></div></div>
+          </div>
+          <div class="stamp ded" style="--fill:${gaugeDeg(dedRatio)}deg">
+            <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">รวมรายการหัก</span></div>
+            <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(c.deductions)}</div><div class="stamp-sub">${(dedRatio*100).toFixed(0)}% ของรายรับ</div></div></div></div>
+            <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(dedRatio*100).toFixed(0)}%"></div></div>
+          </div>
+          <div class="stamp net" style="--fill:${gaugeDeg(netRatio)}deg">
+            <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">เงินสุทธิ</span></div>
+            <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(c.net)}</div><div class="stamp-sub">${(netRatio*100).toFixed(0)}% รับสุทธิ</div></div></div></div>
+            <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(netRatio*100).toFixed(0)}%"></div></div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="settings">
+      <summary>⚙ อัตราค่าแรง / เบี้ยเลี้ยง — เฉพาะงวดนี้ (${labelStart}–${labelEnd})</summary>
+      <div class="settings-body">
+        <div class="field"><label>OT 1.5 (บาท/ชม.)</label><input type="number" id="r_ot15" step="0.01"></div>
+        <div class="field"><label>OT 2 (บาท/ชม.)</label><input type="number" id="r_ot2" step="0.01"></div>
+        <div class="field"><label>OT 3 (บาท/ชม.)</label><input type="number" id="r_ot3" step="0.01"></div>
+        <div class="field"><label>ค่าอาหาร/วัน</label><input type="number" id="r_meal" step="1"></div>
+        <div class="field"><label>ค่าอาหาร OT/วัน</label><input type="number" id="r_mealot" step="1"></div>
+        <div class="field"><label>ค่ารถยนต์/วัน</label><input type="number" id="r_car" step="1"></div>
+        <div class="field"><label>ค่ามอเตอร์ไซค์/วัน</label><input type="number" id="r_moto" step="1"></div>
+      </div>
+    </details>
+
+    <details class="settings" open>
+      <summary>กราฟวงกลม</summary>
+      <div style="padding:4px 16px 16px">
+        <div class="donut-cols">
+          <div class="donut-card">
+            <div class="section-title">รายรับ vs รายจ่าย</div>
+            <div class="donut-wrap">
+              <div class="donut" id="donutMoney">
+                <div class="donut-center"><div class="pct" id="donutMoneyPct" style="font-size:15px">฿0</div><div class="lbl">รายรับรวม</div></div>
+              </div>
+              <div class="donut-legend" id="donutMoneyLegend"></div>
+            </div>
+            <div class="mini-rank" id="donutMoneyBreakdown"></div>
+          </div>
+          <div class="donut-card">
+            <div class="section-title">สัดส่วนวันในงวด <span class="hint">พักร้อน/ลากิจ/หยุด</span></div>
+            <div class="donut-wrap">
+              <div class="donut" id="donutDays">
+                <div class="donut-center"><div class="pct" id="donutDaysTotal">0</div><div class="lbl">วันทั้งหมด</div></div>
+              </div>
+              <div class="donut-legend" id="donutDaysLegend"></div>
+            </div>
+          </div>
+          <div class="donut-card">
+            <div class="section-title">สัดส่วนชั่วโมง OT (1.5 / 2 / 3)</div>
+            <div class="donut-wrap">
+              <div class="donut" id="donutOT">
+                <div class="donut-center"><div class="pct" id="donutOTTotal">0</div><div class="lbl">ชม. รวม</div></div>
+              </div>
+              <div class="donut-legend" id="donutOTLegend"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="section-title">ปฏิทินวันทำงาน <span class="hint">คลิกเลือกประเภทวัน แล้วใส่ชั่วโมง OT ได้เลย</span></div>
+    <div class="daycounts">
+      <span>ทำงาน <b>${c.workDays}</b> วัน</span>
+      <span>หยุด <b>${c.offDays}</b> วัน</span>
+      <span>หยุด-ทำ OT <b>${c.offOtDays}</b> วัน <span class="hint">(${c.otHolidayDays} วันมี OT3 → ได้ค่าอาหาร OT วันหยุด)</span></span>
+      <span>พักร้อน <b>${c.vacDays}</b> วัน</span>
+      <span>พักร้อนครึ่งวัน <b>${c.vacHalfDays}</b> วัน (${(c.vacHalfDays*0.5).toFixed(1)} วันเต็ม)</span>
+      <span>ลากิจ <b>${c.persDays}</b> วัน</span>
+      <span>ชม. OT 1.5 <b>${c.ot15Hours.toFixed(1)}</b></span>
+      <span>ชม. OT 2 <b>${c.ot2Hours.toFixed(1)}</b></span>
+      <span>ชม. OT 3 <b>${c.ot3Hours.toFixed(1)}</b></span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--panel);border:1px solid var(--work-red)"></span> ทำงาน</span>
+      <span><span class="swatch" style="background:var(--panel);border:1px solid var(--off-blue)"></span> หยุด</span>
+      <span><span class="swatch" style="background:var(--panel);border:1px solid var(--vac-green)"></span> พักร้อน</span>
+      <span><span class="swatch" style="background:var(--panel);border:1px dashed var(--paper)"></span> พักร้อนครึ่งวัน (ได้ค่ารถ/อาหารปกติ)</span>
+      <span><span class="swatch" style="background:var(--panel);border:1px solid var(--coral)"></span> ลากิจ</span>
+      <span><span class="swatch" style="background:var(--panel);border:1px dashed var(--gold)"></span> หยุด-ทำ OT (ได้ค่าอาหาร/รถ + โอที 2x/3x ตามชม. — ใส่ได้พร้อมกัน)</span>
+      <span>🏍️ มาด้วยมอเตอร์ไซค์</span>
+      <span>🚗 มาด้วยรถยนต์</span>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="section-title">รายรับอื่นๆ ของเดือนนี้ <span class="hint">฿${fmt(c.gross)}</span></div>
+        <div id="incomeBars"></div>
+        <details class="settings">
+          <summary>แก้ไขค่าคงที่รายเดือน</summary>
+          <div class="settings-body" id="incomeFields" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
+        </details>
+      </div>
+      <div>
+        <div class="section-title">รายการหัก <span class="hint">฿${fmt(c.deductions)}</span></div>
+        <div id="deductBars"></div>
+        <details class="settings">
+          <summary>แก้ไขรายการหัก</summary>
+          <div class="settings-body" id="deductFields" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
+        </details>
+      </div>
+    </div>
+    <div class="footnote">
+      ข้อมูลเดือน ธ.ค. เติมจากไฟล์ตัวอย่างที่ให้มา ส่วนเดือนอื่นเริ่มจากค่าเริ่มต้น (ทำงานทุกวัน, OT=0) ให้ปรับตามจริงได้ทุกช่อง — ระบบจะจำค่าไว้ในเบราว์เซอร์นี้อัตโนมัติ<br>
+      <b>พักร้อนครึ่งวัน</b>: นับเป็น 0.5 วันพักร้อน แต่ยังได้รับค่าอาหารและค่ารถ/มอเตอร์ไซค์เต็มอัตราเหมือนวันทำงานปกติ<br>
+      <b>หยุด-ทำ OT</b>: วันหยุดที่มาทำงานล่วงเวลา ไม่นับเป็น "วันทำงาน" ปกติ ใส่ชั่วโมงได้เฉพาะ OT2 และ/หรือ OT3 (ใส่พร้อมกันได้ ไม่มี tier 1.5) นำไปคิดเป็นค่า OT ตามชั่วโมง และได้รับค่าอาหาร/ค่ารถ-มอเตอร์ไซค์ปกติเหมือนวันทำงาน — หากมีการใส่ OT3 (3 เท่า) จะได้รับ <b>ค่าอาหาร OT วันหยุด</b> เพิ่มอีกต่างหาก (แยกจากค่าอาหาร OT ของวันทำงานปกติ) — ถ้าใส่แค่ OT2 อย่างเดียวจะยังไม่นับเป็นค่าอาหาร OT วันหยุด<br>
+      <b>อัตราค่าแรง/เบี้ยเลี้ยง</b> ตั้งค่าแยกอิสระในแต่ละงวด (ไม่ใช้ร่วมกันทุกเดือนอีกต่อไป) แก้ได้ที่แผง "⚙ อัตราค่าแรง / เบี้ยเลี้ยง — เฉพาะงวดนี้" ด้านบนของแต่ละเดือน
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+  document.getElementById('exportMonthBtn').onclick = ()=>exportMonthPDF(m);
+  document.getElementById('exportMonthCsvBtn').onclick = ()=>exportMonthCSV(m);
+
+  // calendar
+  const grid = document.getElementById('calGrid');
+  list.forEach(dd=>{
+    const key = dayKey(dd);
+    const dstate = state.months[m].days[key] || {type:'work', ot15:0, ot2:0, ot3:0, vehicle:'moto'};
+    const isOffOt = dstate.type==='off_ot';
+    const activeTier = dstate.ot15>0 ? 'ot15' : dstate.ot2>0 ? 'ot2' : dstate.ot3>0 ? 'ot3' : null;
+    const canOt = (dstate.type==='work' || dstate.type==='off_ot');
+    const canVehicle = (dstate.type==='work' || dstate.type==='off_ot' || dstate.type==='vacation_half');
+    const isCar = dstate.vehicle==='car';
+    const el = document.createElement('div');
+    const classMap = {work:'work', off:'off', vacation:'vacation', vacation_half:'vacation vacation-half', personal:'personal', off_ot:'off-ot'};
+    el.className = 'day ' + (classMap[dstate.type]||'');
+    el.innerHTML = `
+      <div class="d-row">
+        <span class="d">${dd.day} ${MONTH_TH[dd.month]}</span>
+        <span class="d-veh ${canVehicle?'':'off'}" data-key="${key}" title="${canVehicle ? (isCar?'มาด้วยรถยนต์':'มาด้วยมอเตอร์ไซค์') : 'ไม่มีการเดินทาง'}">${canVehicle ? (isCar?'🚗':'🏍️') : '—'}</span>
+      </div>
+      <select data-key="${key}" class="typesel">
+        <option value="work" ${dstate.type==='work'?'selected':''}>ทำงาน</option>
+        <option value="off" ${dstate.type==='off'?'selected':''}>หยุด</option>
+        <option value="off_ot" ${dstate.type==='off_ot'?'selected':''}>หยุด-ทำ OT</option>
+        <option value="vacation" ${dstate.type==='vacation'?'selected':''}>พักร้อน</option>
+        <option value="vacation_half" ${dstate.type==='vacation_half'?'selected':''}>พักร้อนครึ่งวัน</option>
+        <option value="personal" ${dstate.type==='personal'?'selected':''}>ลากิจ</option>
+      </select>
+      <div class="vtoggle" data-key="${key}" title="พาหนะที่ใช้มาทำงานวันนี้">
+        <button type="button" class="vbtn moto ${!isCar?'active':''}" data-key="${key}" data-v="moto" ${canVehicle?'':'disabled'}>🏍️ มอไซค์</button>
+        <button type="button" class="vbtn car ${isCar?'active':''}" data-key="${key}" data-v="car" ${canVehicle?'':'disabled'}>🚗 รถยนต์</button>
+      </div>
+      <div class="otgrid">
+        <input type="number" step="0.1" min="0" class="otinput" data-key="${key}" data-tier="ot15" value="${dstate.ot15 ? dstate.ot15 : ''}" placeholder="1.5x" title="ชม. OT 1.5 เท่า" ${!canOt||isOffOt||(activeTier && activeTier!=='ot15')?'disabled':''}>
+        <input type="number" step="0.1" min="0" class="otinput" data-key="${key}" data-tier="ot2" value="${dstate.ot2 ? dstate.ot2 : ''}" placeholder="2x" title="ชม. OT 2 เท่า" ${!canOt||(!isOffOt && activeTier && activeTier!=='ot2')?'disabled':''}>
+        <input type="number" step="0.1" min="0" class="otinput" data-key="${key}" data-tier="ot3" value="${dstate.ot3 ? dstate.ot3 : ''}" placeholder="3x" title="ชม. OT 3 เท่า" ${!canOt||(!isOffOt && activeTier && activeTier!=='ot3')?'disabled':''}>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+  grid.querySelectorAll('.typesel').forEach(sel=>{
+    sel.onchange = e=>{
+      const key = e.target.dataset.key;
+      const d = state.months[m].days[key];
+      d.type = e.target.value;
+      if(d.type!=='work' && d.type!=='off_ot'){ d.ot15 = 0; d.ot2 = 0; d.ot3 = 0; }
+      else if(d.type==='off_ot'){ d.ot15 = 0; } // วันหยุด-ทำ OT ไม่ใช้ tier 1.5 เท่า
+      save(); renderMonth(m); attachRateHandlers();
+    };
+  });
+  grid.querySelectorAll('.vbtn').forEach(btn=>{
+    btn.onclick = e=>{
+      const key = e.currentTarget.dataset.key;
+      const v = e.currentTarget.dataset.v;
+      const d = state.months[m].days[key];
+      d.vehicle = v;
+      save();
+      const cell = e.currentTarget.closest('.day');
+      cell.querySelectorAll('.vbtn').forEach(b=> b.classList.toggle('active', b.dataset.v===v));
+      const badge = cell.querySelector('.d-veh');
+      if(badge && !badge.classList.contains('off')){
+        badge.textContent = v==='car' ? '🚗' : '🏍️';
+        badge.title = v==='car' ? 'มาด้วยรถยนต์' : 'มาด้วยมอเตอร์ไซค์';
+      }
+      renderStampsAndBars(m);
+    };
+  });
+  grid.querySelectorAll('.otinput').forEach(inp=>{
+    inp.oninput = e=>{
+      const key = e.target.dataset.key;
+      const tier = e.target.dataset.tier;
+      const val = parseFloat(e.target.value)||0;
+      const d = state.months[m].days[key];
+      d[tier] = val;
+      const siblings = e.target.closest('.otgrid').querySelectorAll('.otinput');
+      const isOffOt = d.type==='off_ot';
+      if(isOffOt && (tier==='ot2' || tier==='ot3')){
+        // วันหยุด-ทำ OT: ใส่ OT2 และ OT3 พร้อมกันได้ ไม่ต้องล้างค่ากันเอง
+      } else if(val>0){
+        siblings.forEach(o=>{
+          if(o.dataset.tier!==tier){ d[o.dataset.tier] = 0; o.value=''; o.disabled = true; }
+        });
+      } else {
+        siblings.forEach(o=>{ if(o.dataset.tier!==tier) o.disabled = false; });
+      }
+      save();
+      renderStampsAndBars(m); // lightweight refresh without losing focus
+    };
+  });
+
+  renderStampsAndBars(m);
+  renderExtraFields(m);
+}
+
+function renderDonuts(m){
+  const c = calcMonth(m);
+  const g = c.gross, d = c.deductions, net = c.net;
+  const donutMoney = document.getElementById('donutMoney');
+  if(donutMoney){
+    const dedDeg = g>0 ? (d/g*360) : 0;
+    donutMoney.style.background = g>0
+      ? `conic-gradient(var(--coral) 0deg ${dedDeg.toFixed(1)}deg, var(--teal) ${dedDeg.toFixed(1)}deg 360deg)`
+      : 'var(--panel-2)';
+    document.getElementById('donutMoneyPct').textContent = '฿'+fmt(g);
+    document.getElementById('donutMoneyLegend').innerHTML = `
+      <div><span class="swatch" style="background:var(--teal)"></span> สุทธิ ฿${fmt(net)}</div>
+      <div><span class="swatch" style="background:var(--coral)"></span> รายจ่าย (หัก) ฿${fmt(d)}</div>
+    `;
+  }
+  const brk = document.getElementById('donutMoneyBreakdown');
+  if(brk){
+    const incList = [
+      ['เงินเดือน', c.income.salary], ['ค่าระดับ', c.income.baseWage], ['ค่าครองชีพ', c.income.col],
+      ['OT 1.5', c.income.ot15], ['OT 2', c.income.ot2], ['OT 3', c.income.ot3],
+      ['ค่ากะ', c.income.shift], ['เบี้ยขยัน', c.income.diligence],
+      ['ค่าอาหาร', c.income.meal], ['ค่าอาหาร OT', c.income.mealot], ['ค่าอาหาร OT วันหยุด', c.income.mealotHoliday],
+      ['ค่ารถยนต์', c.income.veCar], ['ค่ามอเตอร์ไซค์', c.income.veMoto], ['อื่นๆ', c.income.car],
+      ['อื่นๆ2', c.income.other2], ['อื่นๆ3', c.income.other3]
+    ].filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    brk.innerHTML = `<div class="mr-title">รายรับสูงสุด 3 อันดับ</div>` + (
+      incList.length
+        ? incList.map((r,i)=>`<div class="mr-row"><span class="mr-rank">${i+1}</span><span class="mr-label">${r[0]}</span><b>฿${fmt(r[1])}</b></div>`).join('')
+        : `<div class="mr-row" style="justify-content:center">ยังไม่มีข้อมูล</div>`
+    );
+  }
+
+  const donutDays = document.getElementById('donutDays');
+  if(donutDays){
+    const work = c.workDays + c.offOtDays; // นับวันหยุด-ทำOT รวมกับวันทำงาน (มาทำงานจริง)
+    const off = c.offDays;
+    const vac = c.vacDays + c.vacHalfDays*0.5;
+    const pers = c.persDays;
+    const totDays = work + off + vac + pers;
+    if(totDays>0){
+      const dWork = work/totDays*360;
+      const dOff = dWork + off/totDays*360;
+      const dVac = dOff + vac/totDays*360;
+      donutDays.style.background = `conic-gradient(var(--gold) 0deg ${dWork.toFixed(1)}deg, var(--paper-dim) ${dWork.toFixed(1)}deg ${dOff.toFixed(1)}deg, var(--teal) ${dOff.toFixed(1)}deg ${dVac.toFixed(1)}deg, var(--coral) ${dVac.toFixed(1)}deg 360deg)`;
+    } else {
+      donutDays.style.background = 'var(--panel-2)';
+    }
+    document.getElementById('donutDaysTotal').textContent = totDays.toFixed(1);
+    document.getElementById('donutDaysLegend').innerHTML = `
+      <div><span class="swatch" style="background:var(--gold)"></span> ทำงาน ${c.workDays} วัน (+หยุด-ทำOT ${c.offOtDays} วัน)</div>
+      <div><span class="swatch" style="background:var(--paper-dim)"></span> หยุด ${c.offDays} วัน</div>
+      <div><span class="swatch" style="background:var(--teal)"></span> พักร้อน ${c.vacDays} วัน (+ครึ่งวัน ${c.vacHalfDays} วัน)</div>
+      <div><span class="swatch" style="background:var(--coral)"></span> ลากิจ ${c.persDays} วัน</div>
+    `;
+  }
+
+  const totOT = c.ot15Hours+c.ot2Hours+c.ot3Hours;
+  const donutOT = document.getElementById('donutOT');
+  if(donutOT){
+    if(totOT>0){
+      const d15 = c.ot15Hours/totOT*360, d2 = c.ot2Hours/totOT*360;
+      donutOT.style.background = `conic-gradient(var(--gold) 0deg ${d15.toFixed(1)}deg, var(--teal) ${d15.toFixed(1)}deg ${(d15+d2).toFixed(1)}deg, var(--coral) ${(d15+d2).toFixed(1)}deg 360deg)`;
+    } else {
+      donutOT.style.background = 'var(--panel-2)';
+    }
+    document.getElementById('donutOTTotal').textContent = totOT.toFixed(1);
+    document.getElementById('donutOTLegend').innerHTML = `
+      <div><span class="swatch" style="background:var(--gold)"></span> OT 1.5x — ${c.ot15Hours.toFixed(1)} ชม.</div>
+      <div><span class="swatch" style="background:var(--teal)"></span> OT 2x — ${c.ot2Hours.toFixed(1)} ชม.</div>
+      <div><span class="swatch" style="background:var(--coral)"></span> OT 3x — ${c.ot3Hours.toFixed(1)} ชม.</div>
+    `;
+  }
+}
+
+function renderStampsAndBars(m){
+  const c = calcMonth(m);
+  const list = periodDays(m, YEAR);
+  const attendRatio = (c.workDays+c.offOtDays)/list.length;
+  const dedRatio = c.gross>0 ? c.deductions/c.gross : 0;
+  const netRatio = c.gross>0 ? c.net/c.gross : 0;
+  const stGross = document.querySelector('.stamp.gross'), stDed = document.querySelector('.stamp.ded'), stNet = document.querySelector('.stamp.net');
+  if(stGross){
+    stGross.style.setProperty('--fill', gaugeDeg(attendRatio)+'deg');
+    stGross.querySelector('.stamp-num').textContent = `฿${fmt(c.gross)}`;
+    stGross.querySelector('.stamp-sub').textContent = `อัตราเข้างาน ${(attendRatio*100).toFixed(0)}%`;
+    stGross.querySelector('.stamp-bar-fill').style.width = `${(attendRatio*100).toFixed(0)}%`;
+  }
+  if(stDed){
+    stDed.style.setProperty('--fill', gaugeDeg(dedRatio)+'deg');
+    stDed.querySelector('.stamp-num').textContent = `฿${fmt(c.deductions)}`;
+    stDed.querySelector('.stamp-sub').textContent = `${(dedRatio*100).toFixed(0)}% ของรายรับ`;
+    stDed.querySelector('.stamp-bar-fill').style.width = `${(dedRatio*100).toFixed(0)}%`;
+  }
+  if(stNet){
+    stNet.style.setProperty('--fill', gaugeDeg(netRatio)+'deg');
+    stNet.querySelector('.stamp-num').textContent = `฿${fmt(c.net)}`;
+    stNet.querySelector('.stamp-sub').textContent = `${(netRatio*100).toFixed(0)}% รับสุทธิ`;
+    stNet.querySelector('.stamp-bar-fill').style.width = `${(netRatio*100).toFixed(0)}%`;
+  }
+  renderDonuts(m);
+  updateHeroGauge();
+  renderQuickStats();
+  document.querySelector('.daycounts b')?.parentElement; // no-op guard
+
+  const incRows = [
+    ['เงินเดือน', c.income.salary], ['ค่าระดับ', c.income.baseWage], ['ค่าครองชีพ', c.income.col],
+    ['OT 1.5', c.income.ot15], ['OT 2', c.income.ot2], ['OT 3', c.income.ot3],
+    ['ค่ากะ', c.income.shift], ['เบี้ยขยัน', c.income.diligence],
+    ['ค่าอาหาร', c.income.meal], ['ค่าอาหาร OT', c.income.mealot], ['ค่าอาหาร OT วันหยุด', c.income.mealotHoliday],
+    ['ค่ารถยนต์', c.income.veCar], ['ค่ามอเตอร์ไซค์', c.income.veMoto], ['อื่นๆ', c.income.car],
+    ['อื่นๆ2', c.income.other2], ['อื่นๆ3', c.income.other3]
+  ].filter(r=>r[1]>0);
+  const maxInc = Math.max(...incRows.map(r=>r[1]), 1);
+  const incWrap = document.getElementById('incomeBars');
+  if(incWrap){
+    incWrap.innerHTML = incRows.map(r=>`
+      <div class="bar-row"><div class="top"><span>${r[0]}</span><span class="amt">฿${fmt(r[1])}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r[1]/maxInc*100).toFixed(1)}%;background:var(--gold)"></div></div></div>
+    `).join('');
+  }
+  const ex = state.months[m].extra;
+  const dedRows = [['ภาษี',ex.tax],['ประกันสังคม',ex.sso],['กองทุนฯ',ex.fund],['กสส.',ex.kss]].filter(r=>r[1]>0);
+  const maxDed = Math.max(...dedRows.map(r=>r[1]),1);
+  const dedWrap = document.getElementById('deductBars');
+  if(dedWrap){
+    dedWrap.innerHTML = dedRows.length ? dedRows.map(r=>`
+      <div class="bar-row"><div class="top"><span>${r[0]}</span><span class="amt">฿${fmt(r[1])}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r[1]/maxDed*100).toFixed(1)}%;background:var(--coral)"></div></div></div>
+    `).join('') : `<p style="color:var(--paper-dim);font-size:12px">ยังไม่มีรายการหัก</p>`;
+  }
+}
+
+function renderExtraFields(m){
+  const ex = state.months[m].extra;
+  const incFieldDefs = [
+    ['salary','เงินเดือน'],['baseWage','ค่าระดับ'],['col','ค่าครองชีพ'],
+    ['shift','ค่ากะ'],['diligence','เบี้ยขยัน'],['car','อื่นๆ'],['other2','อื่นๆ2'],['other3','อื่นๆ3']
+  ];
+  const incF = document.getElementById('incomeFields');
+  incF.innerHTML = incFieldDefs.map(([k,label])=>`
+    <div class="field"><label>${label}</label><input type="number" step="1" data-field="${k}" value="${ex[k]}"></div>
+  `).join('');
+  incF.querySelectorAll('input').forEach(inp=>{
+    inp.oninput = e=>{ ex[e.target.dataset.field] = parseFloat(e.target.value)||0; save(); renderStampsAndBars(m); };
+  });
+
+  const dedFieldDefs = [['tax','ภาษี'],['sso','ประกันสังคม'],['fund','กองทุนฯ'],['kss','กสส.']];
+  const dedF = document.getElementById('deductFields');
+  dedF.innerHTML = dedFieldDefs.map(([k,label])=>`
+    <div class="field"><label>${label}</label><input type="number" step="1" data-field="${k}" value="${ex[k]}"></div>
+  `).join('');
+  dedF.querySelectorAll('input').forEach(inp=>{
+    inp.oninput = e=>{ ex[e.target.dataset.field] = parseFloat(e.target.value)||0; save(); renderStampsAndBars(m); };
+  });
+}
+
+function renderOverview(){
+  let totG=0, totD=0, totN=0, totWork=0, totDaysAll=0;
+  const rows = [];
+  for(let m=0;m<12;m++){
+    const c = calcMonth(m);
+    totG+=c.gross; totD+=c.deductions; totN+=c.net;
+    totWork += c.workDays + c.offOtDays;
+    totDaysAll += periodDays(m, YEAR).length;
+    rows.push({m, ...c});
+  }
+  const maxG = Math.max(...rows.map(r=>r.gross),1);
+  const attendRatio = totDaysAll>0 ? totWork/totDaysAll : 0;
+  const dedRatio = totG>0 ? totD/totG : 0;
+  const netRatio = totG>0 ? totN/totG : 0;
+
+  let html = `
+    <div class="hero">
+      <div class="stamp gross" style="--fill:${gaugeDeg(attendRatio)}deg">
+        <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">รายรับรวมทั้งปี</span></div>
+        <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(totG)}</div><div class="stamp-sub">อัตราเข้างานเฉลี่ย ${(attendRatio*100).toFixed(0)}%</div></div></div></div>
+        <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(attendRatio*100).toFixed(0)}%"></div></div>
+      </div>
+      <div class="stamp ded" style="--fill:${gaugeDeg(dedRatio)}deg">
+        <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">รายการหักรวมทั้งปี</span></div>
+        <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(totD)}</div><div class="stamp-sub">${(dedRatio*100).toFixed(0)}% ของรายรับ</div></div></div></div>
+        <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(dedRatio*100).toFixed(0)}%"></div></div>
+      </div>
+      <div class="stamp net" style="--fill:${gaugeDeg(netRatio)}deg">
+        <div class="stamp-head"><span class="stamp-dot"></span><span class="stamp-title">เงินสุทธิรวมทั้งปี</span></div>
+        <div class="stamp-body"><div class="stamp-ring"><div class="stamp-ring-center"><div class="stamp-num">฿${fmt(totN)}</div><div class="stamp-sub">${(netRatio*100).toFixed(0)}% รับสุทธิ</div></div></div></div>
+        <div class="stamp-bar"><div class="stamp-bar-fill" style="width:${(netRatio*100).toFixed(0)}%"></div></div>
+      </div>
+    </div>
+
+    <div class="section-title">รายรับ vs รายการหัก รายเดือน <span class="hint">฿ ฟ้า=รายรับ · ม่วง=หัก</span></div>
+    <div class="ybar-wrap">
+      ${rows.map(r=>`
+        <div class="ybar-col">
+          <div class="ybar-pair">
+            <div class="ybar g" style="height:${(r.gross/maxG*140).toFixed(0)}px" title="รายรับ ฿${fmt(r.gross)}"></div>
+            <div class="ybar d" style="height:${(r.deductions/maxG*140).toFixed(0)}px" title="หัก ฿${fmt(r.deductions)}"></div>
+          </div>
+          <div class="ybar-lbl">${MONTH_TH[r.m]}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section-title">ตารางสรุปรายเดือน</div>
+    <table>
+      <thead><tr><th>งวดเริ่มเดือน</th><th>รายรับ</th><th>รายการหัก</th><th>สุทธิ</th><th>OT 1.5</th><th>OT 2</th><th>OT 3</th><th>วันทำงาน</th><th>หยุด-ทำOT</th><th>พักร้อน</th><th>พักร้อนครึ่งวัน</th><th>ลากิจ</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`
+          <tr>
+            <td>${MONTH_TH[r.m]}</td>
+            <td>฿${fmt(r.gross)}</td>
+            <td>฿${fmt(r.deductions)}</td>
+            <td>฿${fmt(r.net)}</td>
+            <td>${r.ot15Hours.toFixed(1)}</td>
+            <td>${r.ot2Hours.toFixed(1)}</td>
+            <td>${r.ot3Hours.toFixed(1)}</td>
+            <td>${r.workDays}</td>
+            <td>${r.offOtDays}</td>
+            <td>${r.vacDays}</td>
+            <td>${r.vacHalfDays}</td>
+            <td>${r.persDays}</td>
+          </tr>
+        `).join('')}
+        <tr class="total">
+          <td>รวมทั้งปี</td><td>฿${fmt(totG)}</td><td>฿${fmt(totD)}</td><td>฿${fmt(totN)}</td>
+          <td colspan="8"></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="reset-btn" id="exportYearBtn" style="border-color:var(--gold);color:var(--gold);margin-right:10px;">📄 ดาวน์โหลด PDF สรุปรวมทั้งปี (13 หน้า)</button>
+    <button class="reset-btn" id="exportCsvBtn" style="border-color:var(--teal);color:var(--teal);margin-right:10px;">📊 ดาวน์โหลด CSV สรุปรายเดือน</button>
+    <button class="reset-btn" id="resetAll">ล้างข้อมูลทั้งหมด &amp; เริ่มใหม่</button>
+  `;
+  document.getElementById('content').innerHTML = html;
+  document.getElementById('exportYearBtn').onclick = ()=>exportYearPDF();
+  document.getElementById('exportCsvBtn').onclick = ()=>exportYearCSV();
+  document.getElementById('resetAll').onclick = ()=>{
+    if(confirm('ล้างข้อมูลทั้งหมดและกลับไปใช้ค่าเริ่มต้น?')){
+      localStorage.removeItem(STORE_KEY);
+      state = loadState();
+      render();
+    }
+  };
+  updateHeroGauge();
+}
+
+/* ---------- PDF export (ดาวน์โหลดหน้าตาแบบที่แสดงผลจริง) ---------- */
+function showExportOverlay(text){
+  let el = document.getElementById('exportOverlay');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'exportOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(5,10,19,0.94);color:#eaf4ff;display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:14px;z-index:9999;text-align:center;padding:20px;';
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.style.display = 'flex';
+}
+function hideExportOverlay(){
+  const el = document.getElementById('exportOverlay');
+  if(el) el.style.display = 'none';
+}
+function waitFrame(ms){ return new Promise(res=>setTimeout(res, ms)); }
+
+async function captureNode(node){
+  return await html2canvas(node, {backgroundColor:'#050a13', scale:2, useCORS:true});
+}
+
+function addCanvasAsPages(pdf, canvas, isFirstPageOverall){
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = pageWidth;
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+  const imgData = canvas.toDataURL('image/jpeg', 0.92);
+  let heightLeft = imgHeight;
+  let position = 0;
+  if(!isFirstPageOverall) pdf.addPage();
+  pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
+  while(heightLeft > 0){
+    position -= pageHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+  }
+}
+
+function insertPdfHeader(text){
+  const content = document.getElementById('content');
+  const h = document.createElement('div');
+  h.id = 'pdfHeaderTemp';
+  h.style.cssText = 'font-family:"Noto Serif Thai",serif;font-weight:700;font-size:22px;color:#eaf4ff;margin-bottom:16px;border-bottom:1px solid rgba(34,211,245,0.14);padding-bottom:10px;';
+  h.textContent = text;
+  content.prepend(h);
+  return h;
+}
+function removePdfHeader(){
+  const h = document.getElementById('pdfHeaderTemp');
+  if(h) h.remove();
+}
+
+async function exportMonthPDF(m){
+  const prevTab = activeTab;
+  try{
+    showExportOverlay('กำลังสร้าง PDF ของเดือน '+MONTH_TH[m]+'...');
+    if(activeTab !== m){ activeTab = m; render(); }
+    await waitFrame(200);
+    const labelStart = `16 ${MONTH_TH[m]}`, labelEnd = `15 ${MONTH_TH[(m+1)%12]}`;
+    insertPdfHeader(`สรุปค่าแรง OT — งวด ${labelStart} – ${labelEnd} ${YEAR}`);
+    await waitFrame(50);
+    const canvas = await captureNode(document.getElementById('content'));
+    removePdfHeader();
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({unit:'pt', format:'a4'});
+    addCanvasAsPages(pdf, canvas, true);
+    pdf.save(`OT-${MONTH_TH[m]}-${YEAR}.pdf`);
+  }catch(e){
+    console.error(e);
+    alert('สร้าง PDF ไม่สำเร็จ: '+e.message);
+  }finally{
+    removePdfHeader();
+    if(prevTab !== activeTab){ activeTab = prevTab; render(); }
+    hideExportOverlay();
+  }
+}
+
+async function exportYearPDF(){
+  const prevTab = activeTab;
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({unit:'pt', format:'a4'});
+    let first = true;
+
+    showExportOverlay('กำลังสร้าง PDF หน้าภาพรวมทั้งปี...');
+    activeTab = 'overview'; render();
+    await waitFrame(200);
+    insertPdfHeader(`สรุปค่าแรง OT รายปี ${YEAR} — ภาพรวมทั้งปี`);
+    await waitFrame(50);
+    let canvas = await captureNode(document.getElementById('content'));
+    removePdfHeader();
+    addCanvasAsPages(pdf, canvas, first); first = false;
+
+    for(let m=0; m<12; m++){
+      showExportOverlay(`กำลังสร้าง PDF เดือน ${MONTH_TH[m]}... (${m+1}/12)`);
+      activeTab = m; render();
+      await waitFrame(200);
+      const labelStart = `16 ${MONTH_TH[m]}`, labelEnd = `15 ${MONTH_TH[(m+1)%12]}`;
+      insertPdfHeader(`สรุปค่าแรง OT — งวด ${labelStart} – ${labelEnd} ${YEAR}`);
+      await waitFrame(50);
+      canvas = await captureNode(document.getElementById('content'));
+      removePdfHeader();
+      addCanvasAsPages(pdf, canvas, first); first = false;
+    }
+    pdf.save(`OT-สรุปรวมทั้งปี-${YEAR}.pdf`);
+  }catch(e){
+    console.error(e);
+    alert('สร้าง PDF ไม่สำเร็จ: '+e.message);
+  }finally{
+    removePdfHeader();
+    activeTab = prevTab; render();
+    hideExportOverlay();
+  }
+}
+
+/* ---------- CSV export (สรุปรายเดือน — ยอดรวม OT/หัก/สุทธิ ต่อเดือน) ---------- */
+function csvEscape(v){
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+function exportYearCSV(){
+  const headers = [
+    'เดือน','งวดเริ่มต้น','งวดสิ้นสุด',
+    'รายรับรวม (บาท)','รายการหักรวม (บาท)','เงินสุทธิ (บาท)',
+    'ชม. OT 1.5','ชม. OT 2','ชม. OT 3',
+    'วันทำงาน','วันหยุด','วันหยุด-ทำ OT','วันพักร้อน','วันพักร้อนครึ่งวัน','วันลากิจ'
+  ];
+  const rows = [headers];
+  let totG=0, totD=0, totN=0, totOt15=0, totOt2=0, totOt3=0;
+  let totWork=0, totOff=0, totOffOt=0, totVac=0, totVacHalf=0, totPers=0;
+  for(let m=0; m<12; m++){
+    const c = calcMonth(m);
+    const labelStart = `16 ${MONTH_TH[m]}`, labelEnd = `15 ${MONTH_TH[(m+1)%12]}`;
+    rows.push([
+      MONTH_TH[m], labelStart, labelEnd,
+      Math.round(c.gross), Math.round(c.deductions), Math.round(c.net),
+      c.ot15Hours.toFixed(1), c.ot2Hours.toFixed(1), c.ot3Hours.toFixed(1),
+      c.workDays, c.offDays, c.offOtDays, c.vacDays, c.vacHalfDays, c.persDays
+    ]);
+    totG+=c.gross; totD+=c.deductions; totN+=c.net;
+    totOt15+=c.ot15Hours; totOt2+=c.ot2Hours; totOt3+=c.ot3Hours;
+    totWork+=c.workDays; totOff+=c.offDays; totOffOt+=c.offOtDays;
+    totVac+=c.vacDays; totVacHalf+=c.vacHalfDays; totPers+=c.persDays;
+  }
+  rows.push([
+    'รวมทั้งปี', '', '',
+    Math.round(totG), Math.round(totD), Math.round(totN),
+    totOt15.toFixed(1), totOt2.toFixed(1), totOt3.toFixed(1),
+    totWork, totOff, totOffOt, totVac, totVacHalf, totPers
+  ]);
+  const csvBody = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  const csvContent = '\uFEFF' + csvBody; // BOM เพื่อให้ Excel แสดงภาษาไทยถูกต้อง
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `OT-สรุปรายเดือน-${YEAR}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+const DAY_TYPE_TH = {
+  work:'ทำงาน', off:'หยุด', off_ot:'หยุด-ทำ OT',
+  vacation:'พักร้อน', vacation_half:'พักร้อนครึ่งวัน', personal:'ลากิจ'
+};
+const VEHICLE_TH = {moto:'มอเตอร์ไซค์', car:'รถยนต์'};
+
+function exportMonthCSV(m){
+  const c = calcMonth(m);
+  const list = periodDays(m, YEAR);
+  const labelStart = `16 ${MONTH_TH[m]}`, labelEnd = `15 ${MONTH_TH[(m+1)%12]}`;
+  const rows = [];
+
+  rows.push([`สรุปค่าแรง OT — งวด ${labelStart} – ${labelEnd} ${YEAR}`]);
+  rows.push([]);
+
+  rows.push(['ปฏิทินวันทำงาน']);
+  rows.push(['วันที่','ประเภทวัน','พาหนะ','ชม. OT 1.5','ชม. OT 2','ชม. OT 3']);
+  list.forEach(dd=>{
+    const key = dayKey(dd);
+    const d = state.months[m].days[key] || {type:'work', ot15:0, ot2:0, ot3:0, vehicle:'moto'};
+    const canVehicle = (d.type==='work' || d.type==='off_ot' || d.type==='vacation_half');
+    rows.push([
+      `${dd.day} ${MONTH_TH[dd.month]} ${dd.year}`,
+      DAY_TYPE_TH[d.type] || d.type,
+      canVehicle ? (VEHICLE_TH[d.vehicle] || '') : '',
+      Number(d.ot15||0).toFixed(1), Number(d.ot2||0).toFixed(1), Number(d.ot3||0).toFixed(1)
+    ]);
+  });
+  rows.push([]);
+
+  const ex = state.months[m].extra;
+  rows.push(['รายรับ','จำนวน (บาท)']);
+  [
+    ['เงินเดือน', c.income.salary], ['ค่าระดับ', c.income.baseWage], ['ค่าครองชีพ', c.income.col],
+    ['OT 1.5', c.income.ot15], ['OT 2', c.income.ot2], ['OT 3', c.income.ot3],
+    ['ค่ากะ', c.income.shift], ['เบี้ยขยัน', c.income.diligence],
+    ['ค่าอาหาร', c.income.meal], ['ค่าอาหาร OT', c.income.mealot], ['ค่าอาหาร OT วันหยุด', c.income.mealotHoliday],
+    ['ค่ารถยนต์', c.income.veCar], ['ค่ามอเตอร์ไซค์', c.income.veMoto], ['อื่นๆ', c.income.car],
+    ['อื่นๆ2', c.income.other2], ['อื่นๆ3', c.income.other3]
+  ].forEach(([label,val])=> rows.push([label, Math.round(val)]));
+  rows.push(['รวมรายรับ', Math.round(c.gross)]);
+  rows.push([]);
+
+  rows.push(['รายการหัก','จำนวน (บาท)']);
+  [['ภาษี',ex.tax],['ประกันสังคม',ex.sso],['กองทุนฯ',ex.fund],['กสส.',ex.kss]]
+    .forEach(([label,val])=> rows.push([label, Math.round(val)]));
+  rows.push(['รวมรายการหัก', Math.round(c.deductions)]);
+  rows.push([]);
+
+  rows.push(['เงินสุทธิ', Math.round(c.net)]);
+
+  const csvBody = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  const csvContent = '\uFEFF' + csvBody;
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `OT-${MONTH_TH[m]}-${YEAR}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function attachRateHandlers(){
+  if(activeTab==='overview') return; // ภาพรวมทั้งปีไม่มีอัตราให้แก้ (แต่ละเดือนตั้งแยกกัน)
+  const ms = state.months[activeTab];
+  const map = {r_ot15:'ot15', r_ot2:'ot2', r_ot3:'ot3', r_meal:'meal', r_mealot:'mealot', r_moto:'moto', r_car:'car'};
+  Object.entries(map).forEach(([id,key])=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = ms.rates[key];
+    el.oninput = ()=>{ ms.rates[key] = parseFloat(el.value)||0; save(); renderStampsAndBars(activeTab); };
+  });
+}
+
+function renderQuickStats(){
+  const box = document.getElementById('quickStats');
+  if(!box) return;
+  let otHours, workDays, offOtDays, vacDays, periodLabel;
+  if(activeTab==='overview'){
+    let oh=0, wd=0, od=0, vd=0;
+    for(let m=0;m<12;m++){ const c = calcMonth(m); oh+=c.ot15Hours+c.ot2Hours+c.ot3Hours; wd+=c.workDays; od+=c.offOtDays; vd+=c.vacDays+c.vacHalfDays*0.5; }
+    otHours=oh; workDays=wd; offOtDays=od; vacDays=vd; periodLabel='ทั้งปี';
+  } else {
+    const c = calcMonth(activeTab);
+    otHours = c.ot15Hours+c.ot2Hours+c.ot3Hours; workDays=c.workDays; offOtDays=c.offOtDays; vacDays=c.vacDays+c.vacHalfDays*0.5; periodLabel='งวดนี้';
+  }
+  box.innerHTML = `
+    <div class="stat-chip c-cyan"><div class="sc-val">${otHours.toFixed(1)}</div><div class="sc-lbl">ชม. OT รวม (${periodLabel})</div></div>
+    <div class="stat-chip c-teal"><div class="sc-val">${workDays}</div><div class="sc-lbl">วันทำงาน (${periodLabel})</div></div>
+    <div class="stat-chip c-purple"><div class="sc-val">${offOtDays}</div><div class="sc-lbl">วันหยุด-ทำ OT (${periodLabel})</div></div>
+    <div class="stat-chip c-green"><div class="sc-val">${vacDays.toFixed(1)}</div><div class="sc-lbl">วันพักร้อนที่ใช้ (${periodLabel})</div></div>
+  `;
+}
+
+function render(){
+  renderTabs();
+  try{
+    if(activeTab==='overview') renderOverview();
+    else renderMonth(activeTab);
+    attachRateHandlers();
+    updateActiveNav(activeTab==='overview' ? 'overview' : 'monthly');
+    renderQuickStats();
+  }catch(e){
+    console.error(e);
+    document.getElementById('content').innerHTML =
+      `<div style="padding:20px;border:1px solid var(--coral);border-radius:6px;color:var(--coral);font-size:13px">
+        เกิดข้อผิดพลาดตอนแสดงผลเดือนนี้ (${e.message}) — ข้อมูลของเดือนนี้อาจไม่ครบ ลองกด "ล้างข้อมูลทั้งหมด" ที่แท็บภาพรวมทั้งปี หรือแจ้งผู้พัฒนา
+      </div>`;
+  }
+}
+
+attachSyncHandlers();
+attachNavHandlers();
+refreshLastUpdate();
+refreshSysStatus();
+render();
+if(getSupaUrl() && getSupaKey()) pullRemoteOnLoad();
+</script>
+</body>
+</html>
